@@ -72,7 +72,7 @@ namespace MigrateDGAItems
             // Add a error item for debugging
             //Game1.player.addItemByMenuIfNecessary(new CustomObject());
 
-            Utility.ForEachItem(fixItem);
+            Utility.ForEachItemContext(fixItem);
             Utility.ForEachLocation(l => fixTerrainFeatures(l));
 
             // Debugging stuff to alert on furniture in the farmhouse
@@ -82,8 +82,9 @@ namespace MigrateDGAItems
             //}
         }
 
-        private bool fixItem(Item item, Action remove, Action<Item> replaceWith)
+        private bool fixItem(in ForEachItemContext context)
         {
+            Item item = context.Item;
             // If it's a DGA furniture
             if (item is CustomBasicFurniture or CustomBedFurniture or CustomFishTankFurniture or CustomStorageFurniture or CustomTVFurniture)
             {
@@ -104,7 +105,7 @@ namespace MigrateDGAItems
                     }
                 }
                 Monitor.Log($"Replacing {item.Name} with {newItem.QualifiedItemId}", LogLevel.Trace);
-                replaceWith(newItem);
+                context.ReplaceItemWith(newItem);
             }
             // If it's a DGA object
             else if (item is CustomObject)
@@ -114,7 +115,7 @@ namespace MigrateDGAItems
                 string itemId = getBestItemGuess("(O)",item.Name);
                 SObject newObject = (SObject)ItemRegistry.Create(itemId);
                 Monitor.Log($"Replacing {item.Name} with {newObject.QualifiedItemId}", LogLevel.Trace);
-                replaceWith(newObject);
+                context.ReplaceItemWith(newObject);
             }
             // If it's a DGA big craftable
             else if (item is CustomBigCraftable)
@@ -123,7 +124,7 @@ namespace MigrateDGAItems
                 Monitor.Log($"Error item found with name: {item.Name}", LogLevel.Trace);
                 string itemId = getBestItemGuess("(BC)", item.Name);
                 Monitor.Log($"Replacing {item.Name} with {ItemRegistry.Create(itemId).QualifiedItemId}", LogLevel.Trace);
-                replaceWith(ItemRegistry.Create(itemId));
+                context.ReplaceItemWith(ItemRegistry.Create(itemId));
             }
             // If it's a DGA weapon
             else if (item is CustomMeleeWeapon)
@@ -132,16 +133,16 @@ namespace MigrateDGAItems
                 Monitor.Log($"Error item found with name: {item.Name}", LogLevel.Trace);
                 string itemId = getBestItemGuess("(W)", item.Name);
                 Monitor.Log($"Replacing {item.Name} with {ItemRegistry.Create(itemId).QualifiedItemId}", LogLevel.Trace);
-                replaceWith(ItemRegistry.Create(itemId));
+                context.ReplaceItemWith(ItemRegistry.Create(itemId));
             }
             // If it's a DGA clothing item
-            else if (item is CustomPants or CustomShirt or CustomHat or CustomBoots)
+            else if (item is CustomPants)
             {
                 // Type = (P)
                 Monitor.Log($"Error item found with name: {item.Name}", LogLevel.Trace);
                 string itemId = getBestItemGuess("(P)", item.Name);
                 Monitor.Log($"Replacing {item.Name} with {ItemRegistry.Create(itemId).QualifiedItemId}", LogLevel.Trace);
-                replaceWith(ItemRegistry.Create(itemId));
+                context.ReplaceItemWith(ItemRegistry.Create(itemId));
             }
             else if (item is CustomShirt)
             {
@@ -149,7 +150,7 @@ namespace MigrateDGAItems
                 Monitor.Log($"Error item found with name: {item.Name}", LogLevel.Trace);
                 string itemId = getBestItemGuess("(S)", item.Name);
                 Monitor.Log($"Replacing {item.Name} with {ItemRegistry.Create(itemId).QualifiedItemId}", LogLevel.Trace);
-                replaceWith(ItemRegistry.Create(itemId));
+                context.ReplaceItemWith(ItemRegistry.Create(itemId));
             }
             else if (item is CustomHat)
             {
@@ -157,7 +158,7 @@ namespace MigrateDGAItems
                 Monitor.Log($"Error item found with name: {item.Name}", LogLevel.Trace);
                 string itemId = getBestItemGuess("(H)", item.Name);
                 Monitor.Log($"Replacing {item.Name} with {ItemRegistry.Create(itemId).QualifiedItemId}", LogLevel.Trace);
-                replaceWith(ItemRegistry.Create(itemId));
+                context.ReplaceItemWith(ItemRegistry.Create(itemId));
             }
             else if (item is CustomBoots)
             {
@@ -165,7 +166,7 @@ namespace MigrateDGAItems
                 Monitor.Log($"Error item found with name: {item.Name}", LogLevel.Trace);
                 string itemId = getBestItemGuess("(B)", item.Name);
                 Monitor.Log($"Replacing {item.Name} with {ItemRegistry.Create(itemId).QualifiedItemId}", LogLevel.Trace);
-                replaceWith(ItemRegistry.Create(itemId));
+                context.ReplaceItemWith(ItemRegistry.Create(itemId));
             }
             return true;
         }
@@ -181,7 +182,7 @@ namespace MigrateDGAItems
                     // Fix the fence
                     fencesToRemove.Add(pair.Key, pair.Value);
                     string bestGuessId = getBestFenceGuess(((CustomFence)pair.Value).Name);
-                    Fence newFence = new Fence(((CustomFence)pair.Value).TileLocation, bestGuessId, ((CustomFence)pair.Value).isGate);
+                    Fence newFence = new Fence(((CustomFence)pair.Value).TileLocation, bestGuessId, ((CustomFence)pair.Value).isGate.Value);
                     fencesToAdd.Add(pair.Key, newFence);
                 }
             }
